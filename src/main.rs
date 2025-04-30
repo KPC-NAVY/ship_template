@@ -13,7 +13,7 @@ struct Args {
 
 #[derive(Deserialize, Debug)]
 struct Config {
-    ship_name: String,
+    unit_name: String,
     central_ip_address: String,
     central_ip_port: String,
     serial_port: String,
@@ -38,13 +38,13 @@ async fn main() -> anyhow::Result<()> {
     while let Some(Ok(line)) = lines.next_line().await {
         println!("Received: {}", line);
 
-        if let Some((ship_name, content)) = parse_message(&line) {
-            if ship_name == config.ship_name {
+        if let Some((unit_name, content)) = parse_message(&line) {
+            if unit_name == config.unit_name {
                 println!("Receiver: {}", content);
                 tokio::io::AsyncWriteExt::write_all(&mut serial, content.as_bytes()).await?;
                 tokio::io::AsyncWriteExt::write_all(&mut serial, b"\n").await?;
             } else {
-                println!("Different ship({}), Skipping", ship_name);
+                println!("Different ship({}), Skipping", unit_name);
             }
         }
     }
