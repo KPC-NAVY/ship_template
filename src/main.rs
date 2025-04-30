@@ -27,7 +27,9 @@ async fn main() -> anyhow::Result<()> {
 
     println!("config loaded!");
 
-    let stream = TcpStream::connect(format!("{}:{}", config.central_ip_address, config.central_ip_port)).await?;
+    let mut stream = TcpStream::connect(format!("{}:{}", config.central_ip_address, config.central_ip_port)).await?;
+    tokio::io::AsyncWriteExt::write_all(&mut stream, format!(":{}\n", config.unit_name).as_bytes()).await?;
+    
     let reader = BufReader::new(stream);
     let mut lines = reader.lines();
 
