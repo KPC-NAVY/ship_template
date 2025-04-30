@@ -1,6 +1,6 @@
 use tokio::net::TcpStream;
 use tokio::io::{AsyncBufReadExt, BufReader};
-use tokio_serial::{SerialStream, SerialPortBuilderExt};
+use tokio_serial::SerialPortBuilderExt;
 use serde::Deserialize;
 use std::fs;
 use clap::Parser;
@@ -15,7 +15,7 @@ struct Args {
 struct Config {
     unit_name: String,
     central_ip_address: String,
-    central_ip_port: String,
+    central_ip_port: u32,
     serial_port: String,
     serial_baud_rate: u32,
 }
@@ -27,7 +27,7 @@ async fn main() -> anyhow::Result<()> {
 
     println!("config loaded!");
 
-    let mut stream = TcpStream::connect(format!("{}:{}", config.central_ip_address, config.central_ip_port)).await?;
+    let mut stream = TcpStream::connect(format!("{}:{}", config.central_ip_address, config.central_ip_port.to_string())).await?;
     tokio::io::AsyncWriteExt::write_all(&mut stream, format!(":{}\n", config.unit_name).as_bytes()).await?;
     
     let reader = BufReader::new(stream);
@@ -37,7 +37,7 @@ async fn main() -> anyhow::Result<()> {
 
     println!("Connection established!");
 
-    while let Some(Ok(line)) = lines.next_line().await {
+    while let Ok(Some(line)) = lines.next_line().await {
         println!("Received: {}", line);
 
         if let Some((unit_name, content)) = parse_message(&line) {
